@@ -17,7 +17,7 @@ namespace MoreMoneyForFirewood
     [BepInPlugin(pluginGuid, pluginName, pluginVersion)]
     public class MoreMoney : BaseUnityPlugin
     {
-        public const string pluginGuid = "ForZa.moremoneyforfirewood";
+        public const string pluginGuid = "forza.moremoneyforfirewood";
         public const string pluginName = "More Money for Firewood";
         public const string pluginVersion = "0.0.1";
 
@@ -36,13 +36,20 @@ namespace MoreMoneyForFirewood
             Logger.LogInfo(string.Format("Loaded value from config: {0}", logValueConfig.Value));
 
             logValue = logValueConfig.Value;
-        }
 
-        [HarmonyPatch(typeof(BrotherHouse), nameof(BrotherHouse.Receive))]
-        public static bool Receive_Patched(Item_FireWood log, BrotherHouse __instance)
+            new Harmony(pluginGuid).PatchAll();
+        }
+    }
+
+
+    [HarmonyPatch(typeof(BrotherHouse), nameof(BrotherHouse.Receive))]
+    public class Patch
+    {
+        [HarmonyPrefix]
+        public static bool Prefix(Item_FireWood log)
         {
             Singleton<ToDoList_Manager>.i.Debut_SellFireWoodToBrother();
-            int num = logValue;
+            int num = MoreMoney.logValue;
             if (log.IntValue1 == 1)
                 num = (int)Mathf.Floor((float)num * 0.8f);
             else if (log.IntValue1 == 2)
@@ -53,9 +60,10 @@ namespace MoreMoneyForFirewood
             log.isPlaced = true;
             Singleton<Gameplay>.i.Player.CheckIfHoldingItemToCancel((InteractableItems)log);
             Singleton<SOUND_Manager>.i.PlaySound_PartTempInstalled();
-            Object.Destroy((Object)log.rb);
-            Object.Destroy((Object)log.itemCollider);
-            Object.Destroy((Object)log);
+            //Object.Destroy((Object)log.rb);
+            //Object.Destroy((Object)log.itemCollider);
+            //Object.Destroy((Object)log);
+            Object.Destroy(log.gameObject);
 
             return false;
         }
